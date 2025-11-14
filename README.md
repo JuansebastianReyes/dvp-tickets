@@ -66,14 +66,36 @@ Content-Type: application/json
   "contrasena":"Secreta123!"
 }
 ```
+ Respuestas:
+ - `201 Created` con cuerpo:
+   ```
+   {
+     "id":"<UUID>",
+     "nombres":"Ana",
+     "apellidos":"Lopez",
+     "usuario":"alopez",
+     "fechaCreacion":"2025-11-14T16:12:00",
+     "fechaActualizacion":"2025-11-14T16:12:00"
+   }
+   ```
+ - `409 Conflict`: `{"message":"El usuario ya existe"}`
+ - `400 Bad Request` (validación):
+   ```
+   {
+     "message":"Datos inválidos",
+     "errors":[{"field":"nombres","error":"must not be blank"}]
+   }
+   ```
 - Obtener usuario:
 ```
 GET http://localhost:8080/users/{id}
 ```
+ Respuestas: `200 OK` con el usuario o `404 Not Found`
 - Listar usuarios:
 ```
 GET http://localhost:8080/users
 ```
+ Respuesta: `200 OK` con lista `[{...}, {...}]`
 - Actualizar usuario:
 ```
 PUT http://localhost:8080/users/{id}
@@ -85,10 +107,12 @@ Content-Type: application/json
   "contrasena":"NuevaSecreta123!"
 }
 ```
+ Respuestas: `200 OK` usuario actualizado; `404 Not Found`; `400 Bad Request`
 - Eliminar usuario:
 ```
 DELETE http://localhost:8080/users/{id}
 ```
+ Respuestas: `204 No Content`; `404 Not Found`
 - Validación: todos los campos son requeridos y `contrasena` mínima 8 caracteres.
 
 ## Tickets (CRUD + filtros + cierre)
@@ -102,11 +126,26 @@ Content-Type: application/json
   "usuarioId":"<UUID_usuario>"
 }
 ```
+ Respuestas:
+ - `201 Created` con cuerpo:
+   ```
+   {
+     "id":"<UUID>",
+     "descripcion":"Error en pantalla principal",
+     "usuarioId":"<UUID_usuario>",
+     "fechaCreacion":"2025-11-14T16:12:30",
+     "fechaActualizacion":"2025-11-14T16:12:30",
+     "status":"ABIERTO"
+   }
+   ```
+ - `404 Not Found` si `usuarioId` no existe
+ - `400 Bad Request` si falta algún campo
 - Obtener ticket:
 ```
 GET http://localhost:8080/tickets/{id}
 Authorization: Bearer <JWT>
 ```
+ Respuestas: `200 OK` con el ticket o `404 Not Found`
 - Listar tickets con filtros:
 ```
 GET http://localhost:8080/tickets?status=ABIERTO
@@ -114,6 +153,7 @@ GET http://localhost:8080/tickets?usuarioId=<UUID>
 GET http://localhost:8080/tickets?status=CERRADO&usuarioId=<UUID>
 Authorization: Bearer <JWT>
 ```
+ Respuesta: `200 OK` con lista `[{...}]`
 - Actualizar ticket:
 ```
 PUT http://localhost:8080/tickets/{id}
@@ -125,11 +165,13 @@ Content-Type: application/json
   "status":"ABIERTO"
 }
 ```
+ Respuestas: `200 OK` ticket actualizado; `404 Not Found`; `400 Bad Request`
 - Eliminar ticket:
 ```
 DELETE http://localhost:8080/tickets/{id}
 Authorization: Bearer <JWT>
 ```
+ Respuestas: `204 No Content`; `404 Not Found`
 - Cerrar ticket:
 ```
 POST http://localhost:8080/tickets/{id}/close
@@ -140,6 +182,35 @@ Respuestas: 200 OK si se cierra; 409 Conflict si ya estaba cerrado; 404 si no ex
 ## Caché (Caffeine)
 - El listado `GET /tickets?usuarioId=<UUID>` se cachea 5 min por usuario.
 - Operaciones de creación/actualización/cierre/eliminación invalidan la entrada de caché del usuario.
+
+## Seguridad: qué endpoints requieren token
+- Públicos (no requieren token):
+  - `POST /auth/login`
+  - `POST /auth/dev-token` (solo si `DEV_TOKEN_ENABLED=true`; requiere header `X-Dev-Secret`)
+  - `GET /db/health`
+  - `GET /swagger-ui/**`, `GET /v3/api-docs/**`
+  - `/**` bajo `/users` (crear, listar, obtener, actualizar, eliminar)
+- Protegidos (requieren `Authorization: Bearer <JWT>`):
+  - Todos bajo `/tickets/**`
+
+### Ejemplos de respuestas rápidas
+- `POST /auth/login` 200:
+  ```
+  {"token":"<JWT>","tokenType":"Bearer"}
+  ```
+- `POST /auth/login` 401:
+  ```
+  {}
+  ```
+- `POST /auth/dev-token` 200:
+  ```
+  {"token":"<JWT>","tokenType":"Bearer"}
+  ```
+- `GET /db/health` 200: `OK` | 503: `UNAVAILABLE`
+- Errores de validación 400:
+  ```
+  {"message":"Datos inválidos","errors":[{"field":"campo","error":"reason"}]}
+  ```
 
 ## Base de datos
 - Base: `dvpdb`

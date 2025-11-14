@@ -40,7 +40,7 @@ public class JdbcTicketRepositoryAdapter implements TicketRepositoryPort {
   public Ticket save(Ticket ticket) {
     jdbcTemplate.update(
       "INSERT INTO tickets(id, descripcion, usuario_id, fecha_creacion, fecha_actualizacion, status) VALUES (?,?,?,?,?,?)",
-      ticket.getId().toString(), ticket.getDescripcion(), ticket.getUsuarioId().toString(), ticket.getFechaCreacion(), ticket.getFechaActualizacion(), ticket.getStatus().name()
+      ticket.getId(), ticket.getDescripcion(), ticket.getUsuarioId(), ticket.getFechaCreacion(), ticket.getFechaActualizacion(), ticket.getStatus().name()
     );
     return ticket;
   }
@@ -48,7 +48,7 @@ public class JdbcTicketRepositoryAdapter implements TicketRepositoryPort {
   @Override
   public Optional<Ticket> findById(UUID id) {
     try {
-      Ticket t = jdbcTemplate.queryForObject("SELECT * FROM tickets WHERE id = ?", mapper, id.toString());
+      Ticket t = jdbcTemplate.queryForObject("SELECT * FROM tickets WHERE id = ?", mapper, id);
       return Optional.ofNullable(t);
     } catch (EmptyResultDataAccessException e) {
       return Optional.empty();
@@ -66,7 +66,7 @@ public class JdbcTicketRepositoryAdapter implements TicketRepositoryPort {
     java.util.List<Object> args = new java.util.ArrayList<>();
     if (usuarioId != null) {
       sql.append(" AND usuario_id = ?");
-      args.add(usuarioId.toString());
+      args.add(usuarioId);
     }
     if (status != null) {
       sql.append(" AND status = ?");
@@ -80,13 +80,13 @@ public class JdbcTicketRepositoryAdapter implements TicketRepositoryPort {
   public Ticket update(Ticket ticket) {
     jdbcTemplate.update(
       "UPDATE tickets SET descripcion = ?, usuario_id = ?, status = ?, fecha_actualizacion = ? WHERE id = ?",
-      ticket.getDescripcion(), ticket.getUsuarioId().toString(), ticket.getStatus().name(), ticket.getFechaActualizacion(), ticket.getId().toString()
+      ticket.getDescripcion(), ticket.getUsuarioId(), ticket.getStatus().name(), ticket.getFechaActualizacion(), ticket.getId()
     );
     return ticket;
   }
 
   @Override
   public void deleteById(UUID id) {
-    jdbcTemplate.update("DELETE FROM tickets WHERE id = ?", id.toString());
+    jdbcTemplate.update("DELETE FROM tickets WHERE id = ?", id);
   }
 }

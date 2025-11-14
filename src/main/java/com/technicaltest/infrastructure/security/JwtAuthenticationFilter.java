@@ -13,13 +13,32 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Arrays;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
   private final JwtProvider jwtProvider;
+  private static final List<String> EXCLUDED_PATHS = Arrays.asList(
+    "/auth/login",
+    "/auth/dev-token",
+    "/db/health",
+    "/swagger-ui",
+    "/v3/api-docs",
+    "/users",
+    "/users/"
+  );
 
   public JwtAuthenticationFilter(JwtProvider jwtProvider) {
     this.jwtProvider = jwtProvider;
+  }
+
+  @Override
+  protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+    String path = request.getServletPath();
+    for (String p : EXCLUDED_PATHS) {
+      if (path.startsWith(p)) return true;
+    }
+    return false;
   }
 
   @Override

@@ -21,6 +21,7 @@ class UserServiceTest {
 
   @Test
   void createEncodesPasswordAndSaves() {
+    when(repository.findByUsuario("alopez")).thenReturn(java.util.Optional.empty());
     when(repository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
     UserService service = new UserService(repository, encoder);
     User u = service.create("Ana", "Lopez", "alopez", "Secreta123!");

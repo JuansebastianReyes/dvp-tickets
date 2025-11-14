@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -41,7 +40,7 @@ public class JdbcUserRepositoryAdapter implements UserRepositoryPort {
   public User save(User user) {
     jdbcTemplate.update(
       "INSERT INTO users(id, nombres, apellidos, usuario, password_hash, fecha_creacion, fecha_actualizacion) VALUES (?,?,?,?,?,?,?)",
-      user.getId().toString(), user.getNombres(), user.getApellidos(), user.getUsuario(), user.getPasswordHash(), user.getFechaCreacion(), user.getFechaActualizacion()
+      user.getId(), user.getNombres(), user.getApellidos(), user.getUsuario(), user.getPasswordHash(), user.getFechaCreacion(), user.getFechaActualizacion()
     );
     return user;
   }
@@ -49,7 +48,7 @@ public class JdbcUserRepositoryAdapter implements UserRepositoryPort {
   @Override
   public Optional<User> findById(UUID id) {
     try {
-      User u = jdbcTemplate.queryForObject("SELECT * FROM users WHERE id = ?", mapper, id.toString());
+      User u = jdbcTemplate.queryForObject("SELECT * FROM users WHERE id = ?", mapper, id);
       return Optional.ofNullable(u);
     } catch (EmptyResultDataAccessException e) {
       return Optional.empty();
@@ -75,13 +74,13 @@ public class JdbcUserRepositoryAdapter implements UserRepositoryPort {
   public User update(User user) {
     jdbcTemplate.update(
       "UPDATE users SET nombres = ?, apellidos = ?, usuario = ?, password_hash = ?, fecha_actualizacion = ? WHERE id = ?",
-      user.getNombres(), user.getApellidos(), user.getUsuario(), user.getPasswordHash(), user.getFechaActualizacion(), user.getId().toString()
+      user.getNombres(), user.getApellidos(), user.getUsuario(), user.getPasswordHash(), user.getFechaActualizacion(), user.getId()
     );
     return user;
   }
 
   @Override
   public void deleteById(UUID id) {
-    jdbcTemplate.update("DELETE FROM users WHERE id = ?", id.toString());
+    jdbcTemplate.update("DELETE FROM users WHERE id = ?", id);
   }
 }

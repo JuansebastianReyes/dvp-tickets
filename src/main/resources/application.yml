@@ -28,3 +28,6 @@ security:
   jwt:
     secret: ${JWT_SECRET}
     expirationMinutes: 60
+  devToken:
+    enabled: ${DEV_TOKEN_ENABLED:false}
+    secret: ${DEV_TOKEN_SECRET:}

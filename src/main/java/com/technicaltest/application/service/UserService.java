@@ -21,6 +21,9 @@ public class UserService {
   }
 
   public User create(String nombres, String apellidos, String usuario, String contrasena) {
+    if (repository.findByUsuario(usuario).isPresent()) {
+      throw new IllegalStateException("El usuario ya existe");
+    }
     String hash = passwordEncoder.encode(contrasena);
     LocalDateTime now = LocalDateTime.now();
     User u = new User(UUID.randomUUID(), nombres, apellidos, usuario, hash, now, now);
