@@ -1,0 +1,30 @@
+spring:
+  application:
+    name: technicaltest
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/dvpdb}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:ChangeMe_123!}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+      validation-timeout: 5000
+  jdbc:
+    template:
+      fetch-size: 100
+      max-rows: 0
+  flyway:
+    enabled: false
+  sql:
+    init:
+      mode: always
+      schema-locations:
+        - classpath:db/migration/V1__create_users.sql
+        - classpath:db/migration/V2__create_tickets.sql
+server:
+  port: 8080
+security:
+  jwt:
+    secret: ${JWT_SECRET}
+    expirationMinutes: 60

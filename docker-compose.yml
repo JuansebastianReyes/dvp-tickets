@@ -1,0 +1,46 @@
+services:
+  postgres:
+    image: postgres:16.3-alpine
+    container_name: postgres-dvpdb
+    environment:
+      POSTGRES_DB: dvpdb
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - dvpdb_net
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    container_name: technicaltest-app
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/dvpdb
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    networks:
+      - dvpdb_net
+
+volumes:
+  postgres_data:
+
+networks:
+  dvpdb_net:
+    driver: bridge
