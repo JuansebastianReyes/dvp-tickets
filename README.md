@@ -251,3 +251,62 @@ docker compose up -d --build
 ## Arquitectura
 - Hexagonal: puertos en dominio (`UserRepositoryPort`, `TicketRepositoryPort`), servicios de aplicación (`UserService`, `TicketService`), adaptadores de infraestructura (`Jdbc*RepositoryAdapter`), entrada HTTP (controladores).
 - Configuración externa via `application.yml` y variables de entorno.
+
+## Diagrama (vista simple)
+```
+       +--------------------+
+       |  HTTP Clients      |
+       |  Postman/Swagger   |
+       +--------------------+
+                 |
+                 v
++-------------------------------+
+| Entradas (Web)                |
+| - UserController              |
+| - TicketController            |
+| - AuthController              |
+| - HealthController            |
++-------------------------------+
+                 |
+                 v
++-------------------------------+
+| Aplicación (Servicios)        |
+| - UserService                 |
+| - TicketService               |
+| - AuthService                 |
+| - DatabaseHealthService       |
++-------------------------------+
+                 |
+                 v
++-------------------------------+
+| Dominio (Puertos/Modelos)     |
+| - UserRepositoryPort          |
+| - TicketRepositoryPort        |
+| - User, Ticket, TicketStatus  |
++-------------------------------+
+                 |
+                 v
++-----------------------------------------------+
+| Infraestructura (Adaptadores/Soporte)         |
+| - JdbcUserRepositoryAdapter                    |
+| - JdbcTicketRepositoryAdapter                  |
+| - JwtAuthenticationFilter / JwtProvider        |
+| - CacheConfig (Caffeine)                       |
+| - PostgresHealthAdapter                        |
+| - OpenApiConfig (Swagger)                      |
++-----------------------------------------------+
+                 |
+                 v
++-------------------------+
+| Postgres (dvpdb)        |
+| spring.sql.init V1/V2   |
++-------------------------+
+
+Seguridad:
+- `SecurityFilterChain`: `/users/**` público; `/tickets/**` requiere JWT
+- `JwtAuthenticationFilter` excluye rutas públicas (`/auth/login`, `/db/health`, `/swagger-ui/**`, `/v3/api-docs/**`, `/users/**`)
+
+Documentación:
+- Swagger UI: `/swagger-ui/index.html`
+- OpenAPI: `/v3/api-docs`, `/v3/api-docs.yaml`
+```
